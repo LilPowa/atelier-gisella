@@ -12,18 +12,30 @@ export default function Home() {
   const [registered, setRegistered] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email) return;
+      e.preventDefault();
+      if (!email) return;
 
-    setLoading(true);
+      setLoading(true);
 
-    // TODO: Ici nous connecterons l'API de Newsletter (Brevo/Mailchimp) plus tard
-    // Simulation d'attente pour l'instant
-    setTimeout(() => {
-      setLoading(false);
-      setRegistered(true);
-      setEmail("");
-    }, 1500);
+      try {
+        const response = await fetch('/api/subscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email }),
+        });
+
+        if (response.ok) {
+          setRegistered(true);
+          setEmail("");
+        } else {
+          alert("Une erreur est survenue. Vérifiez votre email.");
+        }
+      } catch (error) {
+        console.error(error);
+        alert("Erreur de connexion.");
+      } finally {
+        setLoading(false);
+      }
   };
 
   return (
