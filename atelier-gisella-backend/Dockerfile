@@ -1,41 +1,35 @@
-# On utilise une image Node.js récente
+# Utiliser une image Node.js stable
 FROM node:20-slim
 
-# On définit le dossier de travail
-WORKDIR /app
-
-# On installe les outils système requis (Python/Make sont parfois nécessaires pour certaines libs)
+# Installer les outils systèmes (Python/Make) nécessaires pour certaines libs
 RUN apt-get update && apt-get install -y python3 make g++ && rm -rf /var/lib/apt/lists/*
 
-# On copie d'abord les fichiers de dépendances (pour le cache Docker)
+# Définir le dossier de travail
+WORKDIR /app
+
+# Copier les fichiers de dépendances
 COPY package.json package-lock.json ./
 
-# ÉTAPE CRUCIALE : On installe TOUT (y compris les devDependencies pour avoir Vite/Typescript)
-# On force le mode développement pour l'installation
-ENV NODE_ENV=development
-RUN npm install
+# 1. INSTALLATION
+# On force l'installation de TOUTES les dépendances (y compris Vite, React, etc.)
+RUN npm install --include=dev
 
-# On copie le reste du code source
+# Copier tout le code source
 COPY . .
 
-# On repasse en production pour le build et l'exécution
+# 2. CONSTRUCTION (BUILD)
+# On définit l'environnement de production
 ENV NODE_ENV=production
-
-# On augmente la mémoire disponible pour le build (évite les crashs sur VPS)
+# On augmente la mémoire pour que le build ne plante pas
 ENV NODE_OPTIONS="--max-old-space-size=4096"
-
-# On lance la construction de l'Admin
+# On lance le build (cela DOIT prendre plus de 1 minute)
 RUN npm run build
 
-# On expose le port 9000
+# 3. CONFIGURATION RÉSEAU
 EXPOSE 9000
-
-# On force l'écoute sur toutes les interfaces
-ENV HOST=0.0.0.0
 ENV PORT=9000
+ENV HOST=0.0.0.0
 
-# Commande de démarrage robuste :
-# 1. Migration DB
-# 2. Création User (avec || true pour ne pas planter s'il existe déjà)
-# 3. Démarrage serveur
+# 4. DÉMARRAGE
+# On fait les migrations DB + Création Admin + Démarrage Serveur
 CMD sh -c "npx medusa db:migrate && (npx medusa user -e gisella@latelierdegisella-bougies.fr -p 8#vs5Nt0jLMewBlE || true) && npx medusa start"
