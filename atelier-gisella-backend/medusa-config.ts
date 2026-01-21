@@ -20,7 +20,7 @@ module.exports = defineConfig({
     }
   },
   admin: {
-    backendUrl: process.env.RAILWAY_PUBLIC_DOMAIN || "https://api.latelierdegisella-bougies.fr",
-    disable: false,
+    backendUrl: "https://api.latelierdegisella-bougies.fr",
+    disable: true,
   }
 })
