@@ -8,21 +8,22 @@ WORKDIR /app
 # Copie des dépendances
 COPY package.json package-lock.json ./
 
-# Installation des dépendances (On installe TOUT)
+# Installation complète (pour avoir Vite/React)
 RUN npm ci --include=dev
 
 # Copie du code
 COPY . .
 
-# Configuration Environnement
+# Construction (BUILD)
+# On le fait ICI, dans l'image.
 ENV NODE_ENV=production
-# Augmentation mémoire pour éviter les crashs
 ENV NODE_OPTIONS="--max-old-space-size=4096"
+RUN npm run build
+
+# Réseau
+EXPOSE 9000
 ENV PORT=9000
 ENV HOST=0.0.0.0
-EXPOSE 9000
 
-# --- LA CLÉ DU SUCCÈS EST ICI ---
-# On ne construit PAS ici (RUN npm run build est supprimé)
-# On construit au moment du lancement (CMD)
-CMD sh -c "npm run build && npx medusa db:migrate && (npx medusa user -e gisella@latelierdegisella-bougies.fr -p 8#vs5Nt0jLMewBlE || true) && npx medusa start"
+# Démarrage rapide (car tout est déjà construit)
+CMD sh -c "npx medusa db:migrate && (npx medusa user -e gisella@latelierdegisella-bougies.fr -p 8#vs5Nt0jLMewBlE || true) && npx medusa start"
