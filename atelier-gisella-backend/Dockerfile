@@ -1,6 +1,6 @@
 FROM node:20-slim
 
-# Outils système pour compiler certaines librairies
+# Outils système
 RUN apt-get update && apt-get install -y python3 make g++ && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -8,22 +8,21 @@ WORKDIR /app
 # Copie des dépendances
 COPY package.json package-lock.json ./
 
-# Installation des dépendances (On installe TOUT grâce au package.json nettoyé)
-RUN npm install
+# Installation propre (Linux)
+RUN npm ci --include=dev
 
-# Copie du code source
+# Copie du code (SANS les node_modules locaux grâce au .dockerignore)
 COPY . .
 
-# Construction de l'application (Admin + Backend)
+# Construction
 ENV NODE_ENV=production
-# On donne de la mémoire à Node pour le build
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 RUN npm run build
 
-# Variables d'exécution
+# Réseau
+EXPOSE 9000
 ENV PORT=9000
 ENV HOST=0.0.0.0
-EXPOSE 9000
 
-# Démarrage : Migration -> Création User (Ignore erreur si existe) -> Start
-CMD sh -c "npx medusa db:migrate && (npx medusa user -e gisella@latelierdegisella-bougies.fr -p 8#vs5Nt0jLMewBlE || true) && npx medusa start"
+# Démarrage avec Debug (Si l'admin manque, on le verra dans les logs)
+CMD sh -c "echo 'Verification des fichiers...' && ls -la .medusa/server && npx medusa db:migrate && (npx medusa user -e gisella@latelierdegisella-bougies.fr -p 8#vs5Nt0jLMewBlE || true) && npx medusa start"
