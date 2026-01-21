@@ -21,6 +21,6 @@ module.exports = defineConfig({
   },
   admin: {
     backendUrl: "https://api.latelierdegisella-bougies.fr",
-    disable: true,
+    disable: false,
   }
 })
