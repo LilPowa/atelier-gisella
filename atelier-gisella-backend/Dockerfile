@@ -1,35 +1,31 @@
-# Utiliser une image Node.js stable
 FROM node:20-slim
 
-# Installer les outils systèmes (Python/Make) nécessaires pour certaines libs
+# Outils système
 RUN apt-get update && apt-get install -y python3 make g++ && rm -rf /var/lib/apt/lists/*
 
-# Définir le dossier de travail
 WORKDIR /app
 
-# Copier les fichiers de dépendances
+# Copie des dépendances
 COPY package.json package-lock.json ./
 
-# 1. INSTALLATION
-# On force l'installation de TOUTES les dépendances (y compris Vite, React, etc.)
+# Installation complète (Dev + Prod) pour garantir que Vite/React sont là
 RUN npm install --include=dev
 
-# Copier tout le code source
+# Copie du code
 COPY . .
 
-# 2. CONSTRUCTION (BUILD)
-# On définit l'environnement de production
-ENV NODE_ENV=production
-# On augmente la mémoire pour que le build ne plante pas
+# Configuration de la mémoire pour le Build (Évite les crashs silencieux)
 ENV NODE_OPTIONS="--max-old-space-size=4096"
-# On lance le build (cela DOIT prendre plus de 1 minute)
+ENV NODE_ENV=production
+
+# Construction explicite de l'Admin
 RUN npm run build
 
-# 3. CONFIGURATION RÉSEAU
+# Exposition et Réseau
 EXPOSE 9000
 ENV PORT=9000
 ENV HOST=0.0.0.0
 
-# 4. DÉMARRAGE
-# On fait les migrations DB + Création Admin + Démarrage Serveur
-CMD sh -c "npx medusa db:migrate && (npx medusa user -e gisella@latelierdegisella-bougies.fr -p 8#vs5Nt0jLMewBlE || true) && npx medusa start"
+# Démarrage SIMPLIFIÉ (Juste les migrations et le serveur)
+# On a retiré la création d'utilisateur pour éviter les conflits au boot
+CMD sh -c "npx medusa db:migrate && npx medusa start"
