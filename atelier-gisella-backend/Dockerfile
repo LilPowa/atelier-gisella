@@ -15,11 +15,10 @@ RUN npm install
 COPY . .
 
 # Construction de l'application (Admin + Backend)
-RUN npm run build
-
 ENV NODE_ENV=production
 # On donne de la mémoire à Node pour le build
 ENV NODE_OPTIONS="--max-old-space-size=4096"
+RUN npm run build
 
 # Variables d'exécution
 ENV PORT=9000
