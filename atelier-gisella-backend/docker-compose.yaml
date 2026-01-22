@@ -1,0 +1,25 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      NODE_ENV: production
+      PORT: "9000"
+      HOST: "0.0.0.0"
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      COOKIE_SECRET: ${COOKIE_SECRET}
+      ADMIN_CORS: ${ADMIN_CORS}
+      STORE_CORS: ${STORE_CORS}
+      AUTH_CORS: ${AUTH_CORS}
+    ports:
+      - "9000:9000"
+    # IMPORTANT : pas de "volumes:" ici (sinon /app est écrasé)
+    command: sh -c "npx medusa db:migrate && npx medusa start"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:9000/health >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
