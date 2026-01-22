@@ -1,7 +1,5 @@
 node_modules
 .medusa
-dist
-build
 .git
 .env
 .DS_Store
